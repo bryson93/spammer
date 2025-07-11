@@ -6,52 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spam Share</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="wrapper-container">
-        <div class="header-container">
-            <h1>SPAM SHARE</h1>
-            <h4>by Bryson</h4>
-            <p class="subtitle">Automated Facebook post sharing tool using your browser's cookies</p>
-        </div>
-        
-        <div class="form-wrapper">
-            <form onsubmit="submitForm(event)" class="form-container">
-                <div class="form-item">
-                    <label for="cookies">APPSTATE:</label>
-                    <input type="text" id="cookies" name="cookie" placeholder="Enter your Facebook appstate cookie" required>
-                </div>
-                <div class="form-item">
-                    <label for="urls">POST URL:</label>
-                    <input type="text" id="urls" name="url" placeholder="Enter Facebook post URL" required>
-                </div>
-                <div class="form-item">
-                    <label for="username">USERNAME:</label>
-                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
-                </div>
-                <div class="form-item">
-                    <label for="amounts">SHARE LIMIT:</label>
-                    <input type="number" id="amounts" name="amount" placeholder="Enter number of shares" required>
-                </div>
-                <div class="form-item">
-                    <label for="intervals">DELAY (ms):</label>
-                    <input type="number" id="intervals" name="interval" placeholder="Enter delay between shares" required>
-                </div>
-                <div class="form-item">
-                    <button type="submit" id="submit-button">START SHARING</button>
-                </div>
-                <div class="form-item">
-                    <div id="result"></div>
-                </div>
-            </form>
-        </div>
-        
-        <div class="container" id="process-container">
-            <h2>ACTIVE PROCESSES</h2>
-            <div id="processing"></div>
-        </div>
-    </div>
-
     <style>
         :root {
             --primary-color: #4a6bff;
@@ -288,9 +242,54 @@
             }
         }
     </style>
+</head>
+<body>
+    <div class="wrapper-container">
+        <div class="header-container">
+            <h1>SPAM SHARE</h1>
+            <h4>by Bryson</h4>
+            <p class="subtitle">Automated Facebook post sharing tool using your browser's cookies</p>
+        </div>
+        
+        <div class="form-wrapper">
+            <form onsubmit="submitForm(event)" class="form-container">
+                <div class="form-item">
+                    <label for="cookies">APPSTATE:</label>
+                    <input type="text" id="cookies" name="cookie" placeholder="Enter your Facebook appstate cookie" required>
+                </div>
+                <div class="form-item">
+                    <label for="urls">POST URL:</label>
+                    <input type="text" id="urls" name="url" placeholder="Enter Facebook post URL" required>
+                </div>
+                <div class="form-item">
+                    <label for="username">USERNAME:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-item">
+                    <label for="amounts">SHARE LIMIT:</label>
+                    <input type="number" id="amounts" name="amount" placeholder="Enter number of shares" required>
+                </div>
+                <div class="form-item">
+                    <label for="intervals">DELAY (ms):</label>
+                    <input type="number" id="intervals" name="interval" placeholder="Enter delay between shares" required>
+                </div>
+                <div class="form-item">
+                    <button type="submit" id="submit-button">START SHARING</button>
+                </div>
+                <div class="form-item">
+                    <div id="result"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="container" id="process-container">
+            <h2>ACTIVE PROCESSES</h2>
+            <div id="processing"></div>
+        </div>
+    </div>
 
     <script>
-        async function submitForm() {
+        async function submitForm(event) {
             event.preventDefault();
             const result = document.getElementById('result');
             const button = document.getElementById('submit-button');
@@ -325,6 +324,11 @@
                 }
             } catch (e) {
                 console.error(e);
+                result.style.backgroundColor = '#3D1619';
+                result.style.color = '#FE6265';
+                result.innerHTML = 'Network error occurred';
+                result.style.display = 'block';
+                button.style.display = 'block';
             }
         }
         
@@ -344,21 +348,26 @@
                     return;
                 }
                 
-                initialData.forEach((link, index) => {
+                processContainer.style.display = 'block';
+                container.innerHTML = ''; // Clear existing content
+                
+                initialData.forEach((link) => {
                     let { url, count, id, target, session, username } = link;
                     const processCard = document.createElement('div');
                     processCard.classList.add('current-online');
             
                     const usernameHeader = document.createElement('h4');
-                    usernameHeader.innerHTML = `${username} (${id})`;
+                    usernameHeader.innerHTML = `${username || 'Unknown User'} <span style="font-size: 0.8em; color: #aaa;">(${id})</span>`;
                     processCard.appendChild(usernameHeader);
             
-                    // Create success items container
                     const successContainer = document.createElement('div');
                     successContainer.id = `success-container-${id}`;
                     processCard.appendChild(successContainer);
             
                     container.appendChild(processCard);
+            
+                    // Initial update of success items
+                    updateSuccessItems(successContainer, count, id);
             
                     const intervalId = setInterval(async () => {
                         const updateResponse = await fetch('/total');
@@ -379,15 +388,13 @@
                 });
             
             } catch (error) {
-                console.error(error);
+                console.error('Error in linkOfProcessing:', error);
             }
         }
         
         function updateSuccessItems(container, count, id) {
-            // Clear previous items
             container.innerHTML = '';
             
-            // Create new success items (max 5 visible at a time)
             const start = Math.max(0, count - 5);
             for (let i = start; i < count; i++) {
                 const successItem = document.createElement('div');
@@ -395,9 +402,18 @@
                 successItem.textContent = `${i + 1}. successfully share (${i + 1})`;
                 container.appendChild(successItem);
             }
+            
+            // Auto-scroll to bottom if new items are added
+            if (count > 5) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
         
+        // Initial load
         linkOfProcessing();
+        
+        // Refresh active processes every 5 seconds
+        setInterval(linkOfProcessing, 5000);
     </script>
 </body>
-</html>
+    </html>
