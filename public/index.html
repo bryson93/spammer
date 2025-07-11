@@ -6,7 +6,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spam Share</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="wrapper-container">
+        <div class="header-container">
+            <h1>SPAM SHARE</h1>
+            <h4>by Bryson</h4>
+            <p class="subtitle">Automated Facebook post sharing tool using your browser's cookies</p>
+        </div>
+        
+        <div class="form-wrapper">
+            <form onsubmit="submitForm(event)" class="form-container">
+                <div class="form-item">
+                    <label for="cookies">APPSTATE:</label>
+                    <input type="text" id="cookies" name="cookie" placeholder="Enter your Facebook appstate cookie" required>
+                </div>
+                <div class="form-item">
+                    <label for="urls">POST URL:</label>
+                    <input type="text" id="urls" name="url" placeholder="Enter Facebook post URL" required>
+                </div>
+                <div class="form-item">
+                    <label for="username">USERNAME:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-item">
+                    <label for="amounts">SHARE LIMIT:</label>
+                    <input type="number" id="amounts" name="amount" placeholder="Enter number of shares" required>
+                </div>
+                <div class="form-item">
+                    <label for="intervals">DELAY (ms):</label>
+                    <input type="number" id="intervals" name="interval" placeholder="Enter delay between shares" required>
+                </div>
+                <div class="form-item">
+                    <button type="submit" id="submit-button">START SHARING</button>
+                </div>
+                <div class="form-item">
+                    <div id="result"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="container" id="process-container">
+            <h2>ACTIVE PROCESSES</h2>
+            <div id="processing"></div>
+        </div>
+    </div>
+
     <style>
         :root {
             --primary-color: #4a6bff;
@@ -163,68 +208,28 @@
             background-color: var(--secondary-color);
             padding: 15px;
             border-radius: var(--border-radius);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             box-shadow: var(--box-shadow);
-            transition: all 0.3s ease;
-        }
-
-        .current-online:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .current-online h4 {
             color: var(--primary-color);
             margin-bottom: 10px;
             font-size: 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .current-online h4 .user-icon {
-            margin-right: 8px;
-            color: var(--accent-color);
-        }
-
-        .success-list {
-            list-style-type: none;
         }
 
         .success-item {
-            position: relative;
-            color: var(--text-color);
+            color: var(--success-color);
             font-size: 0.9rem;
-            margin-bottom: 8px;
-            padding: 8px 12px;
-            background: rgba(74, 107, 255, 0.1);
-            border-radius: 6px;
-            animation: fadeIn 0.3s ease-out;
-            transition: all 0.2s ease;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
         }
 
-        .success-item .emoji {
+        .success-item::before {
+            content: "✓";
             margin-right: 8px;
-            font-size: 1.1rem;
-        }
-
-        .success-item:hover {
-            background: rgba(74, 107, 255, 0.2);
-            transform: translateX(5px);
-        }
-
-        .success-count {
-            margin-left: auto;
-            background: rgba(0,0,0,0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
+            color: var(--success-color);
         }
 
         /* Scrollbar styling */
@@ -240,17 +245,6 @@
         #processing::-webkit-scrollbar-thumb {
             background: var(--primary-color);
             border-radius: 10px;
-        }
-
-        /* Pulse animation for active processes */
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(74, 107, 255, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(74, 107, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 107, 255, 0); }
         }
 
         /* Responsive adjustments */
@@ -292,24 +286,17 @@
             .header-container {
                 padding: 10px;
             }
-            
-            .success-item {
-                padding: 6px 10px;
-                font-size: 0.85rem;
-            }
         }
     </style>
 
     <script>
-        async function submitForm(event) {
+        async function submitForm() {
             event.preventDefault();
             const result = document.getElementById('result');
             const button = document.getElementById('submit-button');
             try {
                 result.style.display = 'block';
-                button.disabled = true;
-                button.innerHTML = '⏳ PROCESSING...';
-                
+                button.style.display = 'none';
                 const response = await fetch('/api/submit', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -323,29 +310,21 @@
                         'Content-Type': 'application/json',
                     },
                 });
-                
                 const data = await response.json();
             
                 if (data.status === 200) {
-                    result.style.backgroundColor = 'rgba(72, 187, 120, 0.2)';
-                    result.style.border = '1px solid var(--success-color)';
-                    result.style.color = 'var(--success-color)';
-                    result.innerHTML = '✅ Submitted successfully!';
+                    result.style.backgroundColor = '#32ff0dc7';
+                    result.style.color = '#222';
+                    result.innerHTML = 'Submitted successfully!';
+                    button.style.display = 'block';
                 } else {
-                    result.style.backgroundColor = 'rgba(245, 101, 101, 0.2)';
-                    result.style.border = '1px solid var(--error-color)';
-                    result.style.color = 'var(--error-color)';
-                    result.innerHTML = '❌ Error: ' + data.error;
+                    result.style.backgroundColor = '#3D1619';
+                    result.style.color = '#FE6265';
+                    result.innerHTML = 'Error: ' + data.error;
+                    button.style.display = 'block';
                 }
             } catch (e) {
                 console.error(e);
-                result.style.backgroundColor = 'rgba(245, 101, 101, 0.2)';
-                result.style.border = '1px solid var(--error-color)';
-                result.style.color = 'var(--error-color)';
-                result.innerHTML = '❌ Network error occurred';
-            } finally {
-                button.disabled = false;
-                button.innerHTML = '🚀 START SHARING';
             }
         }
         
@@ -365,26 +344,21 @@
                     return;
                 }
                 
-                container.innerHTML = '';
                 initialData.forEach((link, index) => {
                     let { url, count, id, target, session, username } = link;
                     const processCard = document.createElement('div');
-                    processCard.classList.add('current-online', 'pulse');
+                    processCard.classList.add('current-online');
             
                     const usernameHeader = document.createElement('h4');
-                    usernameHeader.innerHTML = `👤 ${username} <span style="color: var(--text-color); opacity: 0.7;">(${id})</span>`;
+                    usernameHeader.innerHTML = `${username} (${id})`;
                     processCard.appendChild(usernameHeader);
             
                     // Create success items container
-                    const successList = document.createElement('ul');
-                    successList.classList.add('success-list');
-                    successList.id = `success-list-${id}`;
-                    processCard.appendChild(successList);
+                    const successContainer = document.createElement('div');
+                    successContainer.id = `success-container-${id}`;
+                    processCard.appendChild(successContainer);
             
                     container.appendChild(processCard);
-            
-                    // Initial update
-                    updateSuccessList(successList, count, id, target);
             
                     const intervalId = setInterval(async () => {
                         const updateResponse = await fetch('/total');
@@ -399,12 +373,7 @@
             
                         if (updatedLink) {
                             let { count } = updatedLink;
-                            updateSuccessList(successList, count, id, target);
-                            
-                            // Remove pulse animation when complete
-                            if (count >= target) {
-                                processCard.classList.remove('pulse');
-                            }
+                            updateSuccessItems(successContainer, count, id);
                         }
                     }, 1000);
                 });
@@ -414,50 +383,21 @@
             }
         }
         
-        function updateSuccessList(container, count, id, target) {
+        function updateSuccessItems(container, count, id) {
             // Clear previous items
             container.innerHTML = '';
             
             // Create new success items (max 5 visible at a time)
             const start = Math.max(0, count - 5);
-            const remaining = target - count;
-            
             for (let i = start; i < count; i++) {
-                const successItem = document.createElement('li');
+                const successItem = document.createElement('div');
                 successItem.classList.add('success-item');
-                successItem.innerHTML = `
-                    <span class="emoji">✅</span>
-                    <span class="text">Successfully shared</span>
-                    <span class="success-count">#${i+1}</span>
-                `;
+                successItem.textContent = `${i + 1}. successfully share (${i + 1})`;
                 container.appendChild(successItem);
-            }
-            
-            // Add progress indicator if not complete
-            if (count < target) {
-                const progressItem = document.createElement('li');
-                progressItem.style.color = 'var(--accent-color)';
-                progressItem.style.fontSize = '0.8rem';
-                progressItem.style.padding = '5px 12px';
-                progressItem.style.fontStyle = 'italic';
-                progressItem.innerHTML = '⏳ Progress: ' + count + '/' + target + ' (' + remaining + ' remaining)';
-                container.appendChild(progressItem);
-            } else {
-                const completeItem = document.createElement('li');
-                completeItem.style.color = 'var(--success-color)';
-                completeItem.style.fontWeight = 'bold';
-                completeItem.style.padding = '5px 12px';
-                completeItem.innerHTML = '🎉 Completed all ' + target + ' shares!';
-                container.appendChild(completeItem);
             }
         }
         
-        // Initial load
-        document.addEventListener('DOMContentLoaded', function() {
-            linkOfProcessing();
-            // Refresh every 30 seconds to check for new processes
-            setInterval(linkOfProcessing, 30000);
-        });
+        linkOfProcessing();
     </script>
 </body>
-  </html>
+</html>
